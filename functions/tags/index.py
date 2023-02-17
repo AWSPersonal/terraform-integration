@@ -1,4 +1,4 @@
 def lambda_handler(event, context):
     return{
-        "message": "Hello From Dispatches"
+        "message": "Hello From Tags"
     }
