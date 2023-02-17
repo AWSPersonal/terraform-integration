@@ -8,14 +8,22 @@ terraform {
 }
 
 provider "aws" {
-  region  = "us-west-2"
+  region = "ap-south-1"
 }
 
-resource "aws_instance" "app_server" {
-  ami           = "ami-08d70e59c07c61a3a"
-  instance_type = "t2.micro"
+module "Dispatches-Module" {
+  source  = "./modules/services"
+  service = "dispatches"
+}
 
-  tags = {
-    Name = var.instance_name
+resource "null_resource" "clean-up" {
+  triggers = {
+    always_run = "${timestamp()}"
+  }
+  provisioner "local-exec" {
+    command = join(" && ", [
+      "rm -R build",
+      "rm -R compressed"
+    ])
   }
 }
