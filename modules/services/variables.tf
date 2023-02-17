@@ -1,16 +1,47 @@
-variable function_name{
-  description = "Value of the name tag for the EC2 instance"
-  type=string
-  default="psiog-integration-lambda-dispatches"
+variable "function_name" {
+  description = "Name of the current function"
+  type        = string
 }
 
-variable role_name{
-  description = "Value of the name for the role assigned to lambda function"
-  type=string
-  default="iam_for_lambda"
+variable "role" {
+  description = "Role for the current function"
 }
 
-variable service{
-  description = "Value of the name of the service"
-  type=string
+variable "policy" {
+  description = "Policy for the current function"
+}
+
+variable "service" {
+  description = "Service group of the current function"
+  type        = string
+}
+
+variable "memory" {
+  description = "Memory for the current function"
+  type        = number
+  default     = 1024
+}
+
+variable "timeout" {
+  description = "Timeout (in seconds) for the current function"
+  type        = number
+  default     = 3
+}
+
+variable "environment_conf" {
+  description = "Environment Variables for the current function"
+  type = object({
+    db_name                           = string
+    db_password                       = string
+    db_url                            = string
+    db_username                       = string
+    dispatch_organization_service_url = string
+    dispatch_overview_service_url     = string
+    dispatch_service_url              = string
+    domain_url                        = string
+    resource_path                     = string
+    stage                             = string
+    stage_path                        = string
+  })
+  nullable = false
 }

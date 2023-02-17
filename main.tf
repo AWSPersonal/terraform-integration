@@ -11,9 +11,17 @@ provider "aws" {
   region = "ap-south-1"
 }
 
-module "Dispatches-Module" {
-  source  = "./modules/services"
-  service = "dispatches"
+module "Authorization" {
+  source = "./modules/authorization"
+}
+
+module "Dispatches" {
+  source           = "./modules/services"
+  service          = "dispatches"
+  role             = module.Authorization.role_arn
+  policy           = module.Authorization.policy_arn
+  function_name    = "psiog-${terraform.workspace}-lambda-dispatches"
+  environment_conf = var.dispatches_conf
 }
 
 resource "null_resource" "clean-up" {
@@ -22,8 +30,7 @@ resource "null_resource" "clean-up" {
   }
   provisioner "local-exec" {
     command = join(" && ", [
-      "rm -R build",
-      "rm -R compressed"
+      "rm -r build",
     ])
   }
 }
