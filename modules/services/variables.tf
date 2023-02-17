@@ -28,6 +28,11 @@ variable "timeout" {
   default     = 3
 }
 
+variable "layer_name" {
+  description = "Layer for the current function"
+  type        = string
+}
+
 variable "environment_conf" {
   description = "Environment Variables for the current function"
   type = object({
@@ -45,3 +50,5 @@ variable "environment_conf" {
   })
   nullable = false
 }
+
+

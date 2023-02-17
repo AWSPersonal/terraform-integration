@@ -15,6 +15,11 @@ module "Authorization" {
   source = "./modules/authorization"
 }
 
+module "Shared" {
+  source  = "./modules/shared"
+  service = "shared"
+}
+
 module "Dispatches" {
   source           = "./modules/services"
   service          = "dispatches"
@@ -22,6 +27,10 @@ module "Dispatches" {
   policy           = module.Authorization.policy_arn
   function_name    = "psiog-${terraform.workspace}-lambda-dispatches"
   environment_conf = var.dispatches_conf
+  layer_name       = module.Shared.layer_name
+  depends_on = [
+    module.Shared
+  ]
 }
 
 module "Tags" {
@@ -31,6 +40,10 @@ module "Tags" {
   policy           = module.Authorization.policy_arn
   function_name    = "psiog-${terraform.workspace}-tags"
   environment_conf = var.tags_conf
+  layer_name       = module.Shared.layer_name
+  depends_on = [
+    module.Shared
+  ]
 }
 
 resource "null_resource" "clean-up" {
