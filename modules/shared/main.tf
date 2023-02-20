@@ -11,7 +11,7 @@ resource "null_resource" "Install-Dependencies" {
   }
 }
 
-data "archive_file" "zip_the_python_code" {
+data "archive_file" "ZIP-Shared" {
   type        = "zip"
   source_dir  = "build/${var.service}"
   output_path = "build/compressed/${var.service}.zip"
@@ -22,7 +22,11 @@ data "archive_file" "zip_the_python_code" {
 
 resource "aws_lambda_layer_version" "shared_layer" {
   filename   = "build/compressed/${var.service}.zip"
-  layer_name = "Shared-${terraform.workspace}-Layer"
-
+  layer_name = "Shared-${upper(terraform.workspace)}-Layer"
+  depends_on = [
+    data.archive_file.ZIP-Shared
+  ]
+  source_code_hash = data.archive_file.ZIP-Shared.output_base64sha256
+  skip_destroy = true
   compatible_runtimes = ["python3.9"]
 }

@@ -1,0 +1,93 @@
+# Create a single API Gateway (REST)
+resource "aws_api_gateway_rest_api" "apiLambda" {
+  name = "psiog-${terraform.workspace}-api"
+  endpoint_configuration {
+    types = ["REGIONAL"]
+  }
+}
+
+# Create a parent resource for each of the lambda functions
+resource "aws_api_gateway_resource" "endpoints" {
+  for_each    = var.endpoints
+  rest_api_id = aws_api_gateway_rest_api.apiLambda.id
+  parent_id   = aws_api_gateway_rest_api.apiLambda.root_resource_id
+  path_part   = each.value.path
+}
+
+# Create the link between the resource and the lambda function
+resource "aws_api_gateway_method" "endpoint_method" {
+  for_each         = aws_api_gateway_resource.endpoints
+  rest_api_id      = aws_api_gateway_rest_api.apiLambda.id
+  resource_id      = each.value.id
+  http_method      = "ANY"
+  authorization    = "NONE"
+  api_key_required = false
+}
+
+resource "aws_api_gateway_integration" "endpoint_lambda" {
+  for_each    = aws_api_gateway_method.endpoint_method
+  rest_api_id = each.value.rest_api_id
+  resource_id = each.value.resource_id
+  http_method = each.value.http_method
+
+  integration_http_method = "ANY"
+  type                    = "AWS"
+  uri                     = var.endpoints[each.key].invoke_arn
+}
+
+# Create a child resource for each endpoint as Proxy
+resource "aws_api_gateway_resource" "proxy" {
+  for_each    = aws_api_gateway_resource.endpoints
+  rest_api_id = aws_api_gateway_rest_api.apiLambda.id
+  parent_id   = each.value.id
+  path_part   = "{proxy+}"
+}
+
+# Create the link between proxy resource and the lambda function
+resource "aws_api_gateway_method" "proxy_method" {
+  for_each      = aws_api_gateway_resource.proxy
+  rest_api_id   = aws_api_gateway_rest_api.apiLambda.id
+  resource_id   = each.value.id
+  http_method   = "ANY"
+  authorization = "NONE"
+}
+
+resource "aws_api_gateway_integration" "proxy_lambda" {
+  for_each    = aws_api_gateway_method.proxy_method
+  rest_api_id = each.value.rest_api_id
+  resource_id = each.value.resource_id
+  http_method = each.value.http_method
+
+  integration_http_method = "ANY"
+  type                    = "AWS_PROXY"
+  uri                     = var.endpoints[each.key].invoke_arn
+}
+
+resource "aws_api_gateway_deployment" "Deploy_API" {
+  depends_on = [
+    aws_api_gateway_integration.endpoint_lambda,
+    aws_api_gateway_integration.proxy_lambda
+  ]
+
+  rest_api_id = aws_api_gateway_rest_api.apiLambda.id
+  stage_name  = terraform.workspace
+}
+
+resource "aws_lambda_permission" "apigw_root" {
+  for_each      = var.endpoints
+  statement_id  = "${uuid()}"
+  action        = "lambda:InvokeFunction"
+  function_name = var.endpoints[each.key].function_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${aws_api_gateway_rest_api.apiLambda.execution_arn}/*/*/${each.value.path}"
+}
+
+resource "aws_lambda_permission" "apigw_proxy" {
+  for_each      = var.endpoints
+  statement_id  = "${uuid()}"
+  action        = "lambda:InvokeFunction"
+  function_name = var.endpoints[each.key].function_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${aws_api_gateway_rest_api.apiLambda.execution_arn}/*/*/${each.value.path}/*"
+}
+

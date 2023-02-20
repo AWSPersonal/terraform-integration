@@ -19,11 +19,11 @@ data "archive_file" "zip_the_python_code" {
   ]
 }
 
-resource "aws_lambda_function" "dispatches_function" {
+resource "aws_lambda_function" "lambda_function" {
   filename         = "build/compressed/${var.service}.zip"
   function_name    = "psiog-${terraform.workspace}-lambda-${var.service}"
   source_code_hash = data.archive_file.zip_the_python_code.output_base64sha256
-  handler          = "${var.service}.index.lambda_handler"
+  handler          = "${var.service}.main.handler"
   role             = var.role
   runtime          = "python3.9"
   layers           = [var.layer_name]

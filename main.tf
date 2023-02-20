@@ -23,7 +23,7 @@ module "Shared" {
 module "Dispatches" {
   source           = "./modules/services"
   service          = "dispatches"
-  role             = module.Authorization.role_arn
+  role             = module.Authorization.role_arn_lambda
   policy           = module.Authorization.policy_arn
   function_name    = "psiog-${terraform.workspace}-lambda-dispatches"
   environment_conf = var.dispatches_conf
@@ -36,7 +36,7 @@ module "Dispatches" {
 module "Tags" {
   source           = "./modules/services"
   service          = "tags"
-  role             = module.Authorization.role_arn
+  role             = module.Authorization.role_arn_lambda
   policy           = module.Authorization.policy_arn
   function_name    = "psiog-${terraform.workspace}-tags"
   environment_conf = var.tags_conf
@@ -46,16 +46,36 @@ module "Tags" {
   ]
 }
 
-resource "null_resource" "clean-up" {
-  triggers = {
-    always_run = "${timestamp()}"
-  }
-  depends_on = [
-    module.Dispatches
-  ]
-  provisioner "local-exec" {
-    command = join(" && ", [
-      "rm -r build",
-    ])
+module "API-Gateway" {
+  source = "./modules/API"
+  endpoints = {
+    dispatches = {
+      name          = module.Dispatches.function_name
+      path          = "dispatches",
+      invoke_arn    = module.Dispatches.invoke_arn
+      function_name = module.Dispatches.function_name
+      role          = module.Authorization.role_arn_apig
+    },
+    tags = {
+      name          = module.Tags.function_name
+      path          = "tags",
+      invoke_arn    = module.Tags.invoke_arn
+      function_name = module.Tags.function_name
+      role          = module.Authorization.role_arn_apig
+    },
   }
 }
+
+# resource "null_resource" "clean-up" {
+#   triggers = {
+#     always_run = "${timestamp()}"
+#   }
+#   depends_on = [
+#     module.API-Gateway
+#   ]
+#   provisioner "local-exec" {
+#     command = join(" && ", [
+#       "rm -r build",
+#     ])
+#   }
+# }

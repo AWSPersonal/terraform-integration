@@ -10,6 +10,7 @@
           "request": "launch",
           "module": "uvicorn",
           "cwd":"${workspaceFolder}/functions",
+          "envFile": "${workspaceFolder}/dev.env",
           "args": [
               "dispatches.main:app",
               "--reload",

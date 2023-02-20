@@ -35,3 +35,4 @@ terraform.rc
 build
 venv
 *.pyc
+*.env

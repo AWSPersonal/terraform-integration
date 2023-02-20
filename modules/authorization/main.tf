@@ -1,5 +1,5 @@
 resource "aws_iam_role" "iam_for_lambda" {
-  name = "${var.role_name}-for-${terraform.workspace}"
+  name = "${var.role_name_lambda}-for-${terraform.workspace}"
 
   assume_role_policy = <<EOF
   {
@@ -18,9 +18,29 @@ resource "aws_iam_role" "iam_for_lambda" {
   EOF
 }
 
+resource "aws_iam_role" "iam_for_apig" {
+  name = "${var.role_name_apig}-for-${terraform.workspace}"
+
+  assume_role_policy = <<EOF
+  {
+    "Version":"2012-10-17",
+    "Statement": [
+      {
+        "Action":"sts:AssumeRole",
+        "Principal":{
+          "Service":"apigateway.amazonaws.com"
+        },
+        "Effect":"Allow",
+        "Sid":""
+      }
+    ]
+  }
+  EOF
+}
+
 resource "aws_iam_policy" "iam_policy_for_lambda" {
 
-  name        = "${var.policy_name}-for-${terraform.workspace}"
+  name        = "${var.policy_name_lambda}-for-${terraform.workspace}"
   path        = "/"
   description = "AWS IAM Policy for managing aws lambda role"
   policy      = <<EOF
