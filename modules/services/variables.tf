@@ -51,4 +51,6 @@ variable "environment_conf" {
   nullable = false
 }
 
-
+variable "region" {
+  type = string
+}

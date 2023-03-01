@@ -36,3 +36,4 @@ build
 venv
 *.pyc
 *.env
+*-repo
