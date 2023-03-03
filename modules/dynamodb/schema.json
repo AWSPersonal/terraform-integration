@@ -1,0 +1,50 @@
+{
+  "attributes": [
+    {
+      "name": "_id",
+      "type": "S"
+    },
+    {
+      "name": "owner_id",
+      "type": "S"
+    },
+    {
+      "name": "logged_at",
+      "type": "S"
+    }
+  ],
+  "KeySchema": [
+    {
+      "name": "category",
+      "type": "S"
+    },
+    {
+      "name": "experiment_id",
+      "type": "S"
+    },
+    {
+      "name": "item_id",
+      "type": "S"
+    },
+    {
+      "name": "message",
+      "type": "S"
+    },
+    {
+      "name": "project_id",
+      "type": "S"
+    },
+    {
+      "name": "sub_category",
+      "type": "S"
+    },
+    {
+      "name": "tenant_id",
+      "type": "S"
+    },
+    {
+      "name": "title",
+      "type": "S"
+    }
+  ]
+}

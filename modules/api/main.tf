@@ -6,11 +6,53 @@ resource "aws_api_gateway_rest_api" "apiLambda" {
   }
 }
 
+resource "aws_api_gateway_method" "root_method" {
+  rest_api_id      = aws_api_gateway_rest_api.apiLambda.id
+  resource_id      = aws_api_gateway_rest_api.apiLambda.root_resource_id
+  http_method      = "OPTIONS"
+  authorization    = "NONE"
+  api_key_required = false
+}
+
+resource "aws_api_gateway_method_response" "options_200" {
+  rest_api_id = aws_api_gateway_rest_api.apiLambda.id
+  resource_id = aws_api_gateway_rest_api.apiLambda.root_resource_id
+  http_method = aws_api_gateway_method.root_method.http_method
+  status_code = "200"
+  response_models = {
+    "application/json" : "Empty"
+  }
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = true,
+    "method.response.header.Access-Control-Allow-Methods" = true,
+    "method.response.header.Access-Control-Allow-Origin"  = true
+  }
+}
+
+resource "aws_api_gateway_integration" "root_method_mock" {
+  rest_api_id = aws_api_gateway_rest_api.apiLambda.id
+  resource_id = aws_api_gateway_method.root_method.resource_id
+  http_method = aws_api_gateway_method.root_method.http_method
+  type        = "MOCK"
+}
+
+resource "aws_api_gateway_resource" "api" {
+  rest_api_id = aws_api_gateway_rest_api.apiLambda.id
+  parent_id   = aws_api_gateway_rest_api.apiLambda.root_resource_id
+  path_part   = "api"
+}
+
+resource "aws_api_gateway_resource" "version" {
+  rest_api_id = aws_api_gateway_rest_api.apiLambda.id
+  parent_id   = aws_api_gateway_resource.api.id
+  path_part   = "v1"
+}
+
 # Create a parent resource for each of the lambda functions
 resource "aws_api_gateway_resource" "endpoints" {
   for_each    = var.endpoints
   rest_api_id = aws_api_gateway_rest_api.apiLambda.id
-  parent_id   = aws_api_gateway_rest_api.apiLambda.root_resource_id
+  parent_id   = aws_api_gateway_resource.version.id
   path_part   = each.value.path
 }
 
@@ -75,7 +117,7 @@ resource "aws_api_gateway_deployment" "Deploy_API" {
 
 resource "aws_lambda_permission" "apigw_root" {
   for_each      = var.endpoints
-  statement_id  = "${uuid()}"
+  statement_id  = uuid()
   action        = "lambda:InvokeFunction"
   function_name = var.endpoints[each.key].function_name
   principal     = "apigateway.amazonaws.com"
@@ -84,7 +126,7 @@ resource "aws_lambda_permission" "apigw_root" {
 
 resource "aws_lambda_permission" "apigw_proxy" {
   for_each      = var.endpoints
-  statement_id  = "${uuid()}"
+  statement_id  = uuid()
   action        = "lambda:InvokeFunction"
   function_name = var.endpoints[each.key].function_name
   principal     = "apigateway.amazonaws.com"

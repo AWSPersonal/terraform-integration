@@ -3,7 +3,8 @@ variable "function_name" {
   type        = string
 }
 
-variable "role" {
+variable "lambda_role" {
+  type        = string
   description = "Role for the current function"
 }
 
@@ -49,6 +50,10 @@ variable "environment_conf" {
     stage_path                        = string
   })
   nullable = false
+}
+
+variable "source_folder" {
+  type = string
 }
 
 variable "region" {

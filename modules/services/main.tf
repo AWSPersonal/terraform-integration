@@ -5,7 +5,7 @@ resource "null_resource" "do-build" {
   provisioner "local-exec" {
     command = join(" && ", [
       "mkdir -p build/${var.service}",
-      "cp -R functions/${var.service} build/${var.service}/"
+      "cp -R ${var.source_folder}/functions/${var.service} build/${var.service}/"
     ])
   }
 }
@@ -24,7 +24,7 @@ resource "aws_lambda_function" "lambda_function" {
   function_name    = "psiog-${terraform.workspace}-lambda-${var.service}"
   source_code_hash = data.archive_file.zip_the_python_code.output_base64sha256
   handler          = "${var.service}.main.handler"
-  role             = var.role
+  role             = var.lambda_role
   runtime          = "python3.9"
   layers           = [var.layer_name]
   memory_size      = var.memory

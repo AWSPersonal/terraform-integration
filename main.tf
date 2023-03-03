@@ -17,14 +17,11 @@ provider "aws" {
   allowed_account_ids = var.allowed_account_ids
 
   default_tags {
-    tags = {
-      offering   = "Personal"
-      Enviroment = terraform.workspace
-      Terraform  = "True"
-    }
+    tags = var.tags
   }
 }
 
+# Clone the B2C source code from the github repository
 module "Github" {
   source          = "./modules/github"
   git_clone_url   = var.github_specs.clone_url
@@ -32,10 +29,12 @@ module "Github" {
   git_destination = "covalent-repo"
 }
 
+# Create required IAM roles and policies for attaching for the below resources
 module "Authorization" {
   source = "./modules/authorization"
 }
 
+# Deploy Shared Layer
 module "Shared" {
   source        = "./modules/shared"
   service       = "shared"
@@ -46,36 +45,52 @@ module "Shared" {
   ]
 }
 
+# Deploy "Dispatches" services
 module "Dispatches" {
   source           = "./modules/services"
   service          = "dispatches"
-  role             = module.Authorization.role_arn_lambda
+  lambda_role      = module.Authorization.role_arn_lambda
   policy           = module.Authorization.policy_arn
   function_name    = "psiog-${terraform.workspace}-lambda-dispatches"
   environment_conf = var.dispatches_conf
   layer_name       = module.Shared.layer_name
   region           = var.aws_region
+  source_folder = module.Github.git_destination
   depends_on = [
-    module.Shared
+    module.Shared, module.Authorization
   ]
 }
 
+# Deploy "Tags" services
 module "Tags" {
   source           = "./modules/services"
   service          = "tags"
-  role             = module.Authorization.role_arn_lambda
+  lambda_role      = module.Authorization.role_arn_lambda
   policy           = module.Authorization.policy_arn
   function_name    = "psiog-${terraform.workspace}-tags"
   environment_conf = var.tags_conf
   layer_name       = module.Shared.layer_name
   region           = var.aws_region
+  source_folder = module.Github.git_destination
   depends_on = [
-    module.Shared
+    module.Shared, module.Authorization
   ]
 }
 
+# Deploy Dynamo DB
+module "DynamoDB" {
+  source         = "./modules/dynamodb"
+  table_name     = "Activity-Tracker"
+  billing_mode   = "PAY_PER_REQUEST"
+  read_capacity  = 1
+  write_capacity = 1
+  hash_key       = "owner_id"
+  range_key      = "_id"
+}
+
+# Deploy "API Gateway" and integrate with above services
 module "API-Gateway" {
-  source = "./modules/API"
+  source = "./modules/api"
   endpoints = {
     dispatches = {
       name          = module.Dispatches.function_name
@@ -94,6 +109,7 @@ module "API-Gateway" {
   }
 }
 
+# Clean up once the above processes are done
 resource "null_resource" "clean-up" {
   triggers = {
     always_run = "${timestamp()}"
@@ -103,7 +119,8 @@ resource "null_resource" "clean-up" {
   ]
   provisioner "local-exec" {
     command = join(" && ", [
-      "rm -r build",
+      "rm -f -R build",
+      "rm -f -R *-repo",
     ])
   }
 }

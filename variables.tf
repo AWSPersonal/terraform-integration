@@ -6,7 +6,6 @@ variable "name" {
 
 variable "aws_region" {
   type        = string
-  default     = "ap-south-1"
   description = "Region in which Covalent server is deployed"
 }
 
@@ -36,4 +35,18 @@ variable "allowed_account_ids" {
 
 variable "github_specs" {
   type = map(string)
+  default = {
+    clone_url: "https://github.com/AgnostiqHQ/covalent-webapp-api.git",
+    branch: "integration"
+  }
+}
+
+variable "tags" {
+  type = map(string)
+  default = {
+    Offering : "Covalent SAAS",
+    Team : "Psi",
+    Environment : "int"
+    Terraform : true
+  }
 }

@@ -6,7 +6,7 @@ resource "null_resource" "Install-Dependencies" {
     command = join(" && ", [
       "mkdir -p build/${var.service}/python",
       "pip install -r ${var.source_folder}/requirements.txt -t build/${var.service}/python",
-      "cp -r ${var.source_folder}/shared_services build/${var.service}/python"
+      "cp -r ${var.source_folder}/functions/shared_services build/${var.service}/python"
     ])
   }
 }
