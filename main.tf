@@ -52,6 +52,8 @@ module "Dispatches" {
   lambda_role      = module.Authorization.role_arn_lambda
   policy           = module.Authorization.policy_arn
   function_name    = "psiog-${terraform.workspace}-lambda-dispatches"
+  timeout          = 6
+  memory           = 2000
   environment_conf = var.dispatches_conf
   layer_name       = module.Shared.layer_name
   region           = var.aws_region
@@ -94,17 +96,19 @@ module "API-Gateway" {
   endpoints = {
     dispatches = {
       name          = module.Dispatches.function_name
-      path          = var.dispatches_conf.resource_path,
+      path          = "dispatches",
       invoke_arn    = module.Dispatches.invoke_arn
       function_name = module.Dispatches.function_name
       role          = module.Authorization.role_arn_apig
+      prefix_url    = "api/v1/dispatches"
     },
     tags = {
       name          = module.Tags.function_name
-      path          = var.tags_conf.resource_path,
+      path          = "tags",
       invoke_arn    = module.Tags.invoke_arn
       function_name = module.Tags.function_name
       role          = module.Authorization.role_arn_apig
+      prefix_url    = "api/v1/tags"
     },
   }
 }
