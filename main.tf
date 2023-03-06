@@ -26,7 +26,7 @@ module "Github" {
   source          = "./modules/github"
   git_clone_url   = var.github_specs.clone_url
   git_branch      = var.github_specs.branch
-  git_destination = "covalent-repo"
+  git_destination = "covalent-b2c"
 }
 
 # Create required IAM roles and policies for attaching for the below resources
@@ -55,7 +55,7 @@ module "Dispatches" {
   environment_conf = var.dispatches_conf
   layer_name       = module.Shared.layer_name
   region           = var.aws_region
-  source_folder = module.Github.git_destination
+  source_folder    = module.Github.git_destination
   depends_on = [
     module.Shared, module.Authorization
   ]
@@ -71,7 +71,7 @@ module "Tags" {
   environment_conf = var.tags_conf
   layer_name       = module.Shared.layer_name
   region           = var.aws_region
-  source_folder = module.Github.git_destination
+  source_folder    = module.Github.git_destination
   depends_on = [
     module.Shared, module.Authorization
   ]
@@ -94,14 +94,14 @@ module "API-Gateway" {
   endpoints = {
     dispatches = {
       name          = module.Dispatches.function_name
-      path          = "dispatches",
+      path          = var.dispatches_conf.resource_path,
       invoke_arn    = module.Dispatches.invoke_arn
       function_name = module.Dispatches.function_name
       role          = module.Authorization.role_arn_apig
     },
     tags = {
       name          = module.Tags.function_name
-      path          = "tags",
+      path          = var.tags_conf.resource_path,
       invoke_arn    = module.Tags.invoke_arn
       function_name = module.Tags.function_name
       role          = module.Authorization.role_arn_apig
