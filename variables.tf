@@ -34,7 +34,12 @@ variable "allowed_account_ids" {
 }
 
 variable "github_specs" {
-  type = map(string)
+  type = object({
+    access_token = string
+    repository   = string
+    clone_url    = string
+    branch       = string
+  })
 }
 
 variable "tags" {
@@ -45,4 +50,51 @@ variable "tags" {
     Environment : "int"
     Terraform : true
   }
+}
+
+variable "cognito_schema" {
+  type = list(map(string))
+  default = [{
+    name           = "name"
+    data_type      = "String"
+    developer_only = false
+    required       = true
+    mutable        = false
+    },
+    {
+      name           = "given_name"
+      data_type      = "String"
+      developer_only = false
+      required       = true,
+      mutable        = false
+    },
+    {
+      name           = "family_name"
+      data_type      = "String"
+      developer_only = false
+      required       = true,
+      mutable        = false
+    },
+    {
+      name           = "email"
+      data_type      = "String"
+      developer_only = false
+      required       = true,
+      mutable        = false
+    },
+    {
+      name           = "organisation"
+      data_type      = "String"
+      developer_only = true
+      required       = false
+      mutable        = true
+    },
+    {
+      name           = "promotion"
+      data_type      = "String"
+      developer_only = true
+      required       = false
+      mutable        = true
+    }
+  ]
 }

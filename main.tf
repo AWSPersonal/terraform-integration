@@ -136,9 +136,19 @@ module "Admin-Amplify" {
 }
 
 module "Client-Cognito" {
-  source = "./modules/cognito"
-  name   = "Covalent-SAAS-${terraform.workspace}-general"
+  source      = "./modules/cognito"
+  name        = "Covalent-SAAS-${terraform.workspace}-general"
   client_name = "Covalent-SAAS-Client"
+  schema      = var.cognito_schema
+  domain_name = "covalent-saas"
+}
+
+module "Admin-Cognito" {
+  source      = "./modules/cognito"
+  name        = "Covalent-SAAS-${terraform.workspace}-admin"
+  client_name = "Covalent-SAAS-Client"
+  schema      = var.cognito_schema
+  domain_name = "covalent-saas"
 }
 
 # Clean up once the above processes are done
