@@ -35,10 +35,6 @@ variable "allowed_account_ids" {
 
 variable "github_specs" {
   type = map(string)
-  default = {
-    clone_url : "https://github.com/AgnostiqHQ/covalent-webapp-api.git",
-    branch : "integration"
-  }
 }
 
 variable "tags" {
