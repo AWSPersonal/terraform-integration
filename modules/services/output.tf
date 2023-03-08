@@ -17,8 +17,11 @@ output "environment_variables" {
 output "available_services" {
   value = {
     "${var.service}" = {
-      function_name = aws_lambda_function.lambda_function.function_name
-      path          = var.service
+      function_name    = aws_lambda_function.lambda_function.function_name
+      path             = var.service
+      prefix_url       = "api/v1/${var.service}"
+      invoke_arn       = aws_lambda_function.lambda_function.invoke_arn
+      environment_conf = var.environment_conf
     }
   }
 }

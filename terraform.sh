@@ -4,7 +4,7 @@
 WORKSPACE="$(terraform workspace show)"
 
 if [ "$WORKSPACE" = "default" ]; then
-  echo -e "ERROR: Workspace is set to default.\nPlease change the workspace to one of these options: [dev, qa, prod]"
+  echo -e "ERROR: Workspace is set to default.\nPlease change the workspace to one of these options: [int, qa, prod]"
   exit 1
 fi
 

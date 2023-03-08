@@ -22,6 +22,11 @@ resource "aws_amplify_app" "amplify" {
         paths:
           - node_modules/**/*
   EOT
+
+  environment_variables = {
+    COGNITO_USER_POOL_ID = "wdefe"
+    COGNITO_USER_POOL_CLIENT_ID = "COGNITO_USER_POOL_CLIENT_ID"
+  }
 }
 
 resource "aws_amplify_branch" "branch" {

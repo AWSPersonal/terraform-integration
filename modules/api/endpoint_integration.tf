@@ -36,7 +36,7 @@ resource "aws_api_gateway_integration" "proxy_lambda" {
   resource_id = each.value.resource_id
   http_method = each.value.http_method
 
-  integration_http_method = "ANY"
+  integration_http_method = "POST"
   type                    = "AWS_PROXY"
   uri                     = var.endpoints[each.key].invoke_arn
 }

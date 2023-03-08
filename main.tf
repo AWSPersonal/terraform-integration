@@ -2,7 +2,7 @@ data "aws_caller_identity" "current" {
   lifecycle {
     precondition {
       condition     = terraform.workspace != "default"
-      error_message = "Your environment is default. Please choose either dev or qa. You can switch your environment using terraform workspace select {workspace_name}"
+      error_message = "Your environment is default. Please choose either int or qa. You can switch your environment using terraform workspace select {workspace_name}"
     }
     postcondition {
       condition     = self.account_id == var.allowed_account_ids[0]
@@ -47,7 +47,7 @@ module "Shared" {
 
 # Deploy Lambda Services
 module "Lambda-Services" {
-  for_each         = { for service in local.services : service.service_name => service }
+  for_each         = { for service in var.lambda_sources : service.service_name => service }
   source           = "./modules/services"
   service          = each.value.service_name
   lambda_role      = module.Authorization.role_arn_lambda
@@ -65,89 +65,63 @@ module "Lambda-Services" {
 }
 
 # Deploy Dynamo DB
-# module "DynamoDB" {
-#   source         = "./modules/dynamodb"
-#   table_name     = "Activity-Tracker"
-#   billing_mode   = "PAY_PER_REQUEST"
-#   read_capacity  = 1
-#   write_capacity = 1
-#   hash_key       = "owner_id"
-#   range_key      = "_id"
-# }
-output chumma{
-  value = {for key, instance in module.Lambda-Services : key => instance.available_services}
+module "DynamoDB" {
+  source         = "./modules/dynamodb"
+  table_name     = var.dynamodb_name
+  billing_mode   = var.billing_mode
+  read_capacity  = var.read_capacity
+  write_capacity = var.write_capacity
+  hash_key       = var.hash_key
+  range_key      = var.range_key
 }
+
 # Deploy "API Gateway" and integrate with above services
-# module "API-Gateway" {
-#   source    = "./modules/api"
-#   endpoints = {for key, instance in module.Lambda-Services : key => instance.available_services}
-# }
-# endpoints = {
-#   dispatches = {
-#     name          = module.Dispatches.function_name
-#     path          = "dispatches",
-#     invoke_arn    = module.Dispatches.invoke_arn
-#     function_name = module.Dispatches.function_name
-#     role          = module.Authorization.role_arn_apig
-#     prefix_url    = "api/v1/dispatches"
-#   },
-#   tags = {
-#     name          = module.Tags.function_name
-#     path          = "tags",
-#     invoke_arn    = module.Tags.invoke_arn
-#     function_name = module.Tags.function_name
-#     role          = module.Authorization.role_arn_apig
-#     prefix_url    = "api/v1/tags"
-#   },
-# }
+module "API-Gateway" {
+  source    = "./modules/api"
+  endpoints = { for key, instance in module.Lambda-Services : key => instance.available_services[key] }
+}
 
-# resource "null_resource" "update_environment_variables" {
-#   for_each = [module.Dispatches, module.Tags]
-#   dynamic "local_exec" {
-#     for_each = [module.Dispatches, module.Tags]
-#     content {
-#       command = "aws ${local_exec.value.service_name}"
-#     }
-#   }
-# }
+resource "null_resource" "update_environment_variables" {
+  triggers = {
+    always_run = "${timestamp()}"
+  }
 
-# module "Client-Amplify" {
-#   source           = "./modules/amplify"
-#   name             = "Client"
-#   stage            = "PRODUCTION"
-#   access_token     = var.github_specs.access_token
-#   repository       = var.github_specs.repository
-#   framework        = "REACT"
-#   branch           = var.github_specs.branch
-#   environment_name = "staging"
-# }
+  depends_on = [
+    module.Lambda-Services,
+    module.API-Gateway
+  ]
 
-# module "Admin-Amplify" {
-#   source           = "./modules/amplify"
-#   name             = "Admin"
-#   stage            = "PRODUCTION"
-#   access_token     = var.github_specs.access_token
-#   repository       = var.github_specs.repository
-#   framework        = "REACT"
-#   branch           = var.github_specs.branch
-#   environment_name = "staging"
-# }
+  for_each = { for key, instance in module.Lambda-Services : key => instance.available_services[key] }
 
-# module "Client-Cognito" {
-#   source      = "./modules/cognito"
-#   name        = "Covalent-SAAS-${terraform.workspace}-general"
-#   client_name = "Covalent-SAAS-Client"
-#   schema      = var.cognito_schema
-#   domain_name = "covalent-saas"
-# }
+  provisioner "local-exec" {
+    command = <<EOF
+        aws lambda update-function-configuration \
+        --function-name ${each.value.function_name} \
+        --environment Variables="{${join(",", [for key, value in merge(each.value.environment_conf, { domain_url = "${module.API-Gateway.domain_url}" }) : "${key}=${value}"])}}"
+    EOF
+  }
 
-# module "Admin-Cognito" {
-#   source      = "./modules/cognito"
-#   name        = "Covalent-SAAS-${terraform.workspace}-admin"
-#   client_name = "Covalent-SAAS-Client"
-#   schema      = var.cognito_schema
-#   domain_name = "covalent-saas"
-# }
+}
+
+module "Amplify" {
+  for_each         = { for instance in var.amplify_sources : instance.name => instance }
+  source           = "./modules/amplify"
+  name             = each.value.name
+  stage            = each.value.stage
+  access_token     = var.github_specs.access_token
+  repository       = var.github_specs.repository
+  framework        = each.value.framework
+  branch           = var.github_specs.branch
+  environment_name = each.value.environment_name
+}
+
+module "Cognito" {
+  source      = "./modules/cognito"
+  name        = "Covalent-SAAS-${terraform.workspace}-general"
+  client_name = "Covalent-SAAS-Client"
+  schema      = var.cognito_schema
+  domain_name = "covalent-saas"
+}
 
 # Clean up once the above processes are done
 resource "null_resource" "clean-up" {

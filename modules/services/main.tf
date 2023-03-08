@@ -29,11 +29,7 @@ resource "aws_lambda_function" "lambda_function" {
   layers           = [var.layer_name]
   memory_size      = var.memory
   timeout          = var.timeout
-  environment {
-    variables = var.environment_conf
-  }
   depends_on = [
-    var.policy,
     data.archive_file.zip_the_python_code
   ]
 }

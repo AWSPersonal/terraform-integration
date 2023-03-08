@@ -1,0 +1,56 @@
+allowed_account_ids = ["489791930594"]
+aws_region          = "ap-south-1"
+tags = {
+  Offering    = "Covalent SAAS",
+  Team        = "Psi",
+  Environment = "int"
+  Terraform   = true
+}
+dispatches_conf = {
+  db_name                           = "psi_integration"
+  db_password                       = "xd2fxi3nhHL0TfvF"
+  db_url                            = "psiog-integration.04tgx.mongodb.net/?uuidRepresentation=standard"
+  db_username                       = "app-user"
+  dispatch_organization_service_url = "/api/v1/dispatch-organization"
+  dispatch_overview_service_url     = "/api/v1/dispatch-overview"
+  dispatch_service_url              = "/api/v1/dispatches"
+  resource_path                     = "api/v1/dispatches"
+  stage_path                        = "/int"
+}
+tags_conf = {
+  db_name                           = "psi_integration"
+  db_password                       = "xd2fxi3nhHL0TfvF"
+  db_url                            = "psiog-integration.04tgx.mongodb.net/?uuidRepresentation=standard"
+  db_username                       = "app-user"
+  dispatch_organization_service_url = "/api/v1/dispatch-organization"
+  dispatch_overview_service_url     = "/api/v1/dispatch-overview"
+  dispatch_service_url              = "/api/v1/dispatches"
+  resource_path                     = "api/v1/tags"
+  stage_path                        = "/int"
+}
+github_specs = {
+  access_token = "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",
+  repository   = "https://github.com/mpvgithub/Amplify-Sample",
+  clone_url    = "https://github.com/AgnostiqHQ/covalent-webapp-api.git",
+  branch       = "integration"
+}
+amplify_sources = {
+  client = {
+    name             = "client-amplify-covalent-saas"
+    stage            = "PRODUCTION"
+    framework        = "REACT"
+    environment_name = "staging"
+  },
+  admin = {
+    name             = "admin-amplify-covalent-saas"
+    stage            = "PRODUCTION"
+    framework        = "REACT"
+    environment_name = "staging"
+  }
+}
+dynamodb_name  = "Activity-Tracker"
+billing_mode   = "PAY_PER_REQUEST"
+read_capacity  = 1
+write_capacity = 1
+hash_key       = "owner_id"
+range_key      = "_id"
