@@ -29,7 +29,7 @@ tags_conf = {
   stage_path                        = "/int"
 }
 github_specs = {
-  access_token = "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",
+  access_token = "GIT_TOKEN",
   repository   = "https://github.com/mpvgithub/Amplify-Sample",
   clone_url    = "https://github.com/AgnostiqHQ/covalent-webapp-api.git",
   branch       = "integration"
