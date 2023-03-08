@@ -98,3 +98,22 @@ variable "cognito_schema" {
     }
   ]
 }
+
+locals {
+  services = [
+    {
+      service_name     = "dispatches",
+      timeout          = 6,
+      memory           = 2000,
+      function_name    = "psiog-${terraform.workspace}-lambda-dispatches",
+      environment_conf = "${var.dispatches_conf}",
+    },
+    {
+      service_name     = "tags",
+      timeout          = 3,
+      memory           = 1024,
+      function_name    = "psiog-${terraform.workspace}-lambda-tags",
+      environment_conf = "${var.tags_conf}",
+    }
+  ]
+}

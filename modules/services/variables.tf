@@ -44,7 +44,6 @@ variable "environment_conf" {
     dispatch_organization_service_url = string
     dispatch_overview_service_url     = string
     dispatch_service_url              = string
-    domain_url                        = string
     resource_path                     = string
     stage                             = string
     stage_path                        = string
