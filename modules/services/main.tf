@@ -21,7 +21,7 @@ data "archive_file" "zip_the_python_code" {
 
 resource "aws_lambda_function" "lambda_function" {
   filename         = "build/compressed/${var.service}.zip"
-  function_name    = "psiog-${terraform.workspace}-lambda-${var.service}"
+  function_name    = var.function_name
   source_code_hash = data.archive_file.zip_the_python_code.output_base64sha256
   handler          = "${var.service}.main.handler"
   role             = var.lambda_role

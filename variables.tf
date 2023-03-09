@@ -14,63 +14,39 @@ variable "tags" {
 
 # Variables used for Amplify module
 variable "amplify_sources" {
-  type = map(string)
+  type = list(object({
+    name             = string
+    stage            = string
+    framework        = string
+    environment_name = string
+  }))
 }
 
 # Variables used for API-Gateway module
+variable "endpoint_name" {
+  type = string
+}
+
+variable "endpoint_type" {
+  type = list(string)
+}
 
 # Variables used for Authorization module
 
 # Variables used for Cognito module
 variable "cognito_sources" {
-  type = map(string)
-}
-
-variable "cognito_schema" {
-  type = list(map(string))
-  default = [{
-    name           = "name"
-    data_type      = "String"
-    developer_only = false
-    required       = true
-    mutable        = false
-    },
-    {
-      name           = "given_name"
-      data_type      = "String"
-      developer_only = false
-      required       = true,
-      mutable        = false
-    },
-    {
-      name           = "family_name"
-      data_type      = "String"
-      developer_only = false
-      required       = true,
-      mutable        = false
-    },
-    {
-      name           = "email"
-      data_type      = "String"
-      developer_only = false
-      required       = true,
-      mutable        = false
-    },
-    {
-      name           = "organisation"
-      data_type      = "String"
-      developer_only = true
-      required       = false
-      mutable        = true
-    },
-    {
-      name           = "promotion"
-      data_type      = "String"
-      developer_only = true
-      required       = false
-      mutable        = true
-    }
-  ]
+  type = list(object({
+    user_pool_name = string
+    client_name    = string
+    domain_name    = string
+    attribute_schema = list(object({
+      name           = string
+      data_type      = string
+      developer_only = string
+      required       = string
+      mutable        = string
+    }))
+  }))
 }
 
 # Variables used for DynamoDB module
@@ -98,14 +74,6 @@ variable "range_key" {
   type = string
 }
 
-variable "dynamodb_name" {
-  type = string
-}
-
-variable "dynamodb_name" {
-  type = string
-}
-
 # Variables used for Github module
 variable "github_specs" {
   type = object({
@@ -118,11 +86,24 @@ variable "github_specs" {
 
 # Variables used for Lambda module
 variable "lambda_sources" {
-  type = list(map({
-    service_name     = string
-    timeout          = string
-    memory           = string
-    function_name    = string
-    environment_conf = string
+  type = list(object({
+    folder_name   = string
+    service_name  = string
+    timeout       = string
+    memory        = string
+    function_name = string
+    environment_conf = object(
+      {
+        db_name                           = string
+        db_password                       = string
+        db_url                            = string
+        db_username                       = string
+        dispatch_organization_service_url = string
+        dispatch_overview_service_url     = string
+        dispatch_service_url              = string
+        resource_path                     = string
+        stage_path                        = string
+      }
+    )
   }))
 }

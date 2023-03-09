@@ -49,7 +49,8 @@ module "Shared" {
 module "Lambda-Services" {
   for_each         = { for service in var.lambda_sources : service.service_name => service }
   source           = "./modules/services"
-  service          = each.value.service_name
+  service          = each.value.folder_name
+  prefix           = each.value.service_name
   lambda_role      = module.Authorization.role_arn_lambda
   policy           = module.Authorization.policy_arn
   function_name    = each.value.function_name
@@ -77,8 +78,10 @@ module "DynamoDB" {
 
 # Deploy "API Gateway" and integrate with above services
 module "API-Gateway" {
-  source    = "./modules/api"
-  endpoints = { for key, instance in module.Lambda-Services : key => instance.available_services[key] }
+  source        = "./modules/api"
+  endpoint_name = var.endpoint_name
+  endpoint_type = var.endpoint_type
+  endpoints     = { for key, instance in module.Lambda-Services : key => instance.available_services[key] }
 }
 
 resource "null_resource" "update_environment_variables" {
@@ -116,11 +119,12 @@ module "Amplify" {
 }
 
 module "Cognito" {
+  for_each    = { for instance in var.cognito_sources : instance.user_pool_name => instance }
   source      = "./modules/cognito"
-  name        = "Covalent-SAAS-${terraform.workspace}-general"
-  client_name = "Covalent-SAAS-Client"
-  schema      = var.cognito_schema
-  domain_name = "covalent-saas"
+  name        = each.value.user_pool_name
+  client_name = each.value.client_name
+  schema      = each.value.attribute_schema
+  domain_name = each.value.domain_name
 }
 
 # Clean up once the above processes are done

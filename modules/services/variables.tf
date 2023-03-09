@@ -34,27 +34,18 @@ variable "layer_name" {
   type        = string
 }
 
-variable "environment_conf" {
-  description = "Environment Variables for the current function"
-  type = object({
-    db_name                           = string
-    db_password                       = string
-    db_url                            = string
-    db_username                       = string
-    dispatch_organization_service_url = string
-    dispatch_overview_service_url     = string
-    dispatch_service_url              = string
-    resource_path                     = string
-    stage                             = string
-    stage_path                        = string
-  })
-  nullable = false
-}
-
 variable "source_folder" {
   type = string
 }
 
 variable "region" {
+  type = string
+}
+
+variable environment_conf{
+  type = map(any)
+}
+
+variable "prefix" {
   type = string
 }

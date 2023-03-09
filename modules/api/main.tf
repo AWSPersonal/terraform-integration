@@ -1,8 +1,8 @@
 # Create a single API Gateway (REST)
 resource "aws_api_gateway_rest_api" "apiLambda" {
-  name = "psiog-${terraform.workspace}-api"
+  name = var.endpoint_name
   endpoint_configuration {
-    types = ["REGIONAL"]
+    types = var.endpoint_type
   }
 }
 
